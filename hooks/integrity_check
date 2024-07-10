@@ -1,0 +1,14 @@
+#!/bin/bash
+
+run_hook() {
+	msg "Running integrity check..."
+	/bin/ash /usr/local/bin/integrity-check.sh
+	# if output=$(/usr/local/bin/integrity-check.sh 2>&1); then
+	# 	msg "[+]"
+	# 	/bin/ash /usr/local/bin/integrity-check.sh
+	# else
+	# 	err "Integrity check failed"
+	# 	err "Output: $output"
+	# 	sleep 10
+	# fi
+}
