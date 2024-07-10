@@ -89,23 +89,6 @@
 # # 	sleep 1
 # # 	((timeout_counter++))
 # # done
-#
-# echo -e "${YELLOW}\n***************************************${NC}"
-#
-# if [ $? -eq 124 ]; then
-#   echo -e "${RED}✗ YubiKey timed out. Please try again.${NC}"
-#   exit 1
-# fi
-#
-# if [ -z "$response" ]; then
-#   echo -e "${RED}✗ No response from YubiKey. Please try again.${NC}"
-#   exit 1
-# fi
-#
-# echo "$challenge:$response" >/root/challenge_response.txt
-# echo -e "${GREEN}✓ YubiKey response successfully recorded.${NC}"
-
-# In /root/generate_hashes.sh
 
 # Define color codes
 RED='\033[38;2;255;0;0m'      # Pure red
@@ -120,23 +103,11 @@ TOKEN_FILE="$INTEGRITY_DIR/boot_token.enc"
 CHALLENGE_FILE="$INTEGRITY_DIR/challenge"
 SALT_FILE="$INTEGRITY_DIR/salt.txt"
 HASH_FILE="$INTEGRITY_DIR/boot_hash" #"/root/boot_hash"
-# SIGNATURE_FILE="/root/boot_hash.sig"
-# GPG_KEY_ID="3632B93C91353B30"
 
 sudo mkdir -p $INTEGRITY_DIR
 sudo chown root:root $INTEGRITY_DIR
 sudo chmod 700 $INTEGRITY_DIR
 
-#generate a random token
-# boot_token=$(head -c 32 /dev/urandom | base64)
-
-# Encrypt the token using Yubikey
-# echo -n "$boot_token" | ykman openpgp encrypt -o /tmp/boot_token.enc
-# sudo mv /tmp/boot_token.enc $TOKEN_FILE
-
-# For grubx64.efi3632B93C91353B30
-# dont need to check this as this is usually not necessary for the integrity check
-# sha256sum $BOOT_DIR/efi/EFI/GRUB/grubx64.efi >/root/grubx64_efi_hash
 sudo bash -c '
 BOOT_DIR="'$BOOT_DIR'"
 HASH_FILE="'$HASH_FILE'"

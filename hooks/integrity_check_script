@@ -222,7 +222,6 @@
 # GREEN='\033[38;2;0;255;0m'    # Pure green
 YELLOW='\033[38;2;255;255;0m' # Yellow
 NC='\033[0m'                  # No Color
-
 GREEN='\e[32m'
 RED='\e[31m'
 
@@ -234,8 +233,6 @@ CHALLENGE_FILE="$INTEGRITY_DIR/challenge"
 SALT_FILE="$INTEGRITY_DIR/salt.txt"
 HASH_FILE="$INTEGRITY_DIR/boot_hash"
 TMP_HASH_FILE="/tmp/check_boot"
-# CHALLENGE_FILE="/root/challenge"
-# SIGNATURE_FILE="/root/boot_hash.sig"
 
 echo -e "${YELLOW}[+] Starting boot integrity check...${NC}"
 
@@ -268,7 +265,6 @@ elif [ -z "$response" ]; then
 fi
 
 # Derive the key using PBKDF2
-# key=$(echo -n "$response" | openssl dgst -sha256 -binary -pbkdf2 -iter 100000 -salt "$salt" | xxd -p -c 64)
 key=$(echo -n "${response}${salt}" | openssl dgst -sha256 -binary | xxd -p -c 64)
 # Decript the boot token
 boot_token=$(echo "$encrypted_token" | openssl enc -aes-256-cbc -d -base64 -K "$key" -iv "$iv")
@@ -291,7 +287,6 @@ if diff $TMP_HASH_FILE $HASH_FILE >/dev/null; then
   echo -e "[${GREEN}OK${NC}] Boot file integrity verified\e[0m"
 
   # Generate a hash of the current boot files and decrypted token
-  # current_integrity_hash=$(cat $TMP_HASH_FILE $decrypted_token | sha256sum)
   current_integrity_hash=$(cat "$TMP_HASH_FILE" <(echo -n "$boot_token") | sha256sum)
   stored_integrity_hash=$(cat "$INTEGRITY_DIR/integrity_hash")
 
@@ -307,52 +302,10 @@ else
   echo -e "[${RED}FAIL${NC}] Boot integrity check failed. Files have been modified.\e[0m"
   echo -e "[${RED}FAIL${NC}] -----------------------------------------\e[0m"
   diff $TMP_HASH_FILE $HASH_FILE
-  # while IFS= read -r line; do
-  #   if ! grep -q "$line" /root/boot_hash; then
-  #     echo "Mismatch found: $line"
-  #   fi
   echo -e "[${RED}FAIL${NC}] -----------------------------------------\e[0m"
 
   umount $MOUNT_POINT
   exit 1
-  # done </tmp/check_boot
-
-  # while IFS= read -r line; do
-  #   file=$(echo "$line" | awk '{print $2}')
-  #   if ! grep -q "$file" $HASH_FILE; then
-  #     echo -e "[\e[31mFAIL${NC}] File only in TMP_HASH_FILE: $file \e[0m"
-  #   fi
-  # done <$TMP_HASH_FILE
-  #
-  # while IFS= read -r line; do
-  #   file=$(echo "$line" | awk '{print $2}')
-  #   if ! grep -q "$file" $TMP_HASH_FILE; then
-  #     echo -e "[\e[31mFAIL${NC}] File only in HASH_FILE: $file \e[0m"
-  #   fi
-  # done <$HASH_FILE
-  # Optionally, you can add more detailed error reporting here
 fi
-
-# BOOT_DIR="/boot"
-# TMP_DIR="/tmp"
-#
-# Check initramfs-linux.img
-# dd if=$BOOT_DIR/initramfs-linux.img bs=1M count=1 2>/dev/null | sha256sum >$TMP_DIR/current_initramfs_linux_hash
-# if diff $TMP_DIR/current_initramfs_linux_hash /root/initramfs_linux_hash; then
-#   echo -e "[\e[32mOK${NC}] initramfs-linux.img integrity verified\e[0m"
-# else
-#   echo "initramfs-linux.img integrity check failed"
-#   echo -e "[\e[31mFAIL${NC}] initramfs-linux.img integrity check failed\e[0m"
-# fi
-#
-# # Check initramfs-linux-fallback.img
-# dd if=$BOOT_DIR/initramfs-linux-fallback.img bs=1M count=1 2>/dev/null | sha256sum >$TMP_DIR/current_initramfs_linux_fallback_hash
-# if diff $TMP_DIR/current_initramfs_linux_fallback_hash /root/initramfs_linux_fallback_hash; then
-#   echo -e "[\e[32mOK${NC}] initramfs-linux-fallback.img integrity verified\e[0m"
-# else
-#   echo -e "[\e[31mFAIL${NC}] initramfs-linux-fallback.img integrity check failed\e[0m"
-# fi
-
 umount $MOUNT_POINT
-#
 echo -e "[${GREEN}OK${NC}] Boot integrity check completed successfully\e[0m"
