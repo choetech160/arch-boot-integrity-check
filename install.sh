@@ -23,7 +23,7 @@ command_exists() {
 
 # Check for required tools
 check_requirements() {
-  local required_tools=("ykman", "ykchalresp", "openssl")
+  local required_tools=("ykman", "ykchalresp", "openssl", "xxd", "sha256sum")
   for tool in "${required_tools[@]}"; do
     if ! command_exists "$tool"; then
       print_color "$RED" "Error: $tool is not installed. Please install it and run this script again."
@@ -32,77 +32,101 @@ check_requirements() {
   done
 }
 
-# Function to set up GPG with YubiKey
-setup_gpg_yubikey() {
-  print_color "$YELLOW" "Setting up GPG with YubiKey..."
-
-  # Check if YubiKey is inserted
-  if ! ykman list | grep -q "YubiKey"; then
-    print_color "$RED" "Error: YubiKey not detected. Please insert your YubiKey and try again."
-    exit 1
-  fi
-
-  # Generate a new GPG key on the YubiKey
-  print_color "$YELLOW" "Generating a new GPG key on your YubiKey. Follow the prompts..."
-  gpg --card-edit
-  print_color "$GREEN" "GPG key generated successfully."
+# Create necessary directories
+create_directories() {
+  print_color "$YELLOW" "Creating necessary directories..."
+  sudo mkdir -p /etc/boot_integrity
+  sudo mkdir -p /etc/initcpio/hooks
+  sudo mkdir -p /etc/initcpio/install
+  print_color "$GREEN" "Directories created successfully."
 }
+
+# Copy scripts
+copy_scripts() {
+  print_color "$YELLOW" "Copying scripts..."
+  sudo cp ./generate_hashes.sh /usr/local/bin/
+  sudo cp ./hooks/integrity_check /etc/initcpio/hooks/
+  sudo cp ./hooks/integrity_check_script /etc/initcpio/hooks/
+  sudo cp ./install/integrity_check /etc/initcpio/install/
+  sudo chmod +x /usr/local/bin/generate_hashes.sh
+  sudo chmod +x /etc/initcpio/hooks/integrity_check_script
+  print_color "$GREEN" "Scripts copied successfully."
+}
+# Function to set up GPG with YubiKey
+# setup_gpg_yubikey() {
+#   print_color "$YELLOW" "Setting up GPG with YubiKey..."
+#
+#   # Check if YubiKey is inserted
+#   if ! ykman list | grep -q "YubiKey"; then
+#     print_color "$RED" "Error: YubiKey not detected. Please insert your YubiKey and try again."
+#     exit 1
+#   fi
+#
+#   # Generate a new GPG key on the YubiKey
+#   print_color "$YELLOW" "Generating a new GPG key on your YubiKey. Follow the prompts..."
+#   gpg --card-edit
+#   print_color "$GREEN" "GPG key generated successfully."
+# }
 
 # Function to create a detached signature of the boot partition
-create_boot_signature() {
-  local boot_partition="/dev/nvme0n1p2"
-  local signature_file="/root/boot_partition.sig"
-
-  print_color "$YELLOW" "Creating a detached signature of the boot partition..."
-
-  # Get the GPG key ID from the YubiKey
-  local key_id=$(gpg --card-status | grep "General key info" -A 2 | tail -n 1 | awk '{print $NF}')
-
-  # Create the detached signature
-  sudo dd if="$boot_partition" bs=1M | gpg --detach-sign --default-key "$key_id" >"$signature_file"
-
-  print_color "$GREEN" "Boot partition signature created at $signature_file"
-}
+# create_boot_signature() {
+#   local boot_partition="/dev/nvme0n1p2"
+#   local signature_file="/root/boot_partition.sig"
+#
+#   print_color "$YELLOW" "Creating a detached signature of the boot partition..."
+#
+#   # Get the GPG key ID from the YubiKey
+#   local key_id=$(gpg --card-status | grep "General key info" -A 2 | tail -n 1 | awk '{print $NF}')
+#
+#   # Create the detached signature
+#   sudo dd if="$boot_partition" bs=1M | gpg --detach-sign --default-key "$key_id" >"$signature_file"
+#
+#   print_color "$GREEN" "Boot partition signature created at $signature_file"
+# }
 
 # Function to create the boot verification script
-create_verify_script() {
-  local INITCPIO_HOOKS_DIR="/etc/initcpio/hooks/"
-
-  print_color "$YELLOW" "Copying boot verification script to $INITCPIO_HOOKS_DIR"
-  sudo bash -c mv ./hooks/integrity_check_script $INITCPIO_HOOKS_DIR
-
-  sudo chmod +x "$INITCPIO_HOOKS_DIR/integrity_check_script"
-  print_color "$GREEN" "Boot verification scripts copied to $INITCPIO_HOOKS_DIR"
-}
+# create_verify_script() {
+#   local INITCPIO_HOOKS_DIR="/etc/initcpio/hooks/"
+#
+#   print_color "$YELLOW" "Copying boot verification script to $INITCPIO_HOOKS_DIR"
+#   sudo bash -c mv ./hooks/integrity_check_script $INITCPIO_HOOKS_DIR
+#
+#   sudo chmod +x "$INITCPIO_HOOKS_DIR/integrity_check_script"
+#   print_color "$GREEN" "Boot verification scripts copied to $INITCPIO_HOOKS_DIR"
+# }
 
 # Function to create initramfs hook
-create_initramfs_hook() {
-  local INITCPIO_HOOKS_DIR="/etc/initcpio/hooks/"
-
-  print_color "$YELLOW" "Creating initramfs hook..."
-  sudo bash -c mv ./hooks/integrity_check $INITCPIO_HOOKS_DIR
-
-  sudo chmod +x "$INITCPIO_HOOKS_DIR/integrity_check"
-  print_color "$GREEN" "Initramfs hook created at $INITCPIO_HOOKS_DIR"
-}
+# create_initramfs_hook() {
+#   local INITCPIO_HOOKS_DIR="/etc/initcpio/hooks/"
+#
+#   print_color "$YELLOW" "Creating initramfs hook..."
+#   sudo bash -c mv ./hooks/integrity_check $INITCPIO_HOOKS_DIR
+#
+#   sudo chmod +x "$INITCPIO_HOOKS_DIR/integrity_check"
+#   print_color "$GREEN" "Initramfs hook created at $INITCPIO_HOOKS_DIR"
+# }
 
 # Function to create initramfs install file
-create_initramfs_install() {
-  local INITCPIO_INSTALL_DIR="/etc/initcpio/install/bootverify"
-
-  print_color "$YELLOW" "Creating initramfs install file..."
-  sudo bash -c mv ./install/integrity_check $INITCPIO_INSTALL_DIR
-
-  sudo chmod +x "$install_file"
-  print_color "$GREEN" "Initramfs install file created at $INITCPIO_INSTALL_DIR"
-}
+# create_initramfs_install() {
+#   local INITCPIO_INSTALL_DIR="/etc/initcpio/install/bootverify"
+#
+#   print_color "$YELLOW" "Creating initramfs install file..."
+#   sudo bash -c mv ./install/integrity_check $INITCPIO_INSTALL_DIR
+#
+#   sudo chmod +x "$install_file"
+#   print_color "$GREEN" "Initramfs install file created at $INITCPIO_INSTALL_DIR"
+# }
 
 # Function to update mkinitcpio.conf
 update_mkinitcpio_conf() {
   print_color "$YELLOW" "Updating mkinitcpio.conf..."
 
-  sudo sed -i 's/^HOOKS=.*/& integrity_check/' /etc/mkinitcpio.conf
-  print_color "$GREEN" "mkinitcpio.conf updated"
+  if ! grep -q "integrity_check" /etc/mkinitcpio.conf; then
+    sudo sed -i 's/^HOOKS=.*/& integrity_check/' /etc/mkinitcpio.conf
+    print_color "$GREEN" "mkinitcpio.conf updated"
+  else
+    print_color "$YELLOW" "integrity_check hook already present in mkinitcpio.conf"
+  fi
 }
 
 # Function to regenerate initramfs
@@ -113,22 +137,56 @@ regenerate_initramfs() {
   print_color "$GREEN" "Initramfs regenerated"
 }
 
+generate_initial_hashes() {
+  print_color "$YELLOW" "Generating initial boot hashes..."
+  sudo /usr/local/bin/generate_hashes.sh
+  print_color "$GREEN" "Initial boot hashes generated"
+}
+
+add_regenerate_shortcut() {
+  local shortcut_command="alias regenerate_hashes='sudo /usr/local/bin/generate_hashes.sh'"
+  local shell_rc_file
+
+  if [ -f "$HOME/.bashrc" ]; then
+    shell_rc_file="$HOME/.bashrc"
+  elif [ -f "$HOME/.zshrc" ]; then
+    shell_rc_file="$HOME/.zshrc"
+  else
+    print_color "$YELLOW" "Could not find .bashrc or .zshrc. Skipping shortcut creation."
+    return
+  fi
+
+  if grep -q "alias regenerate_hashes" "$shell_rc_file"; then
+    print_color "$YELLOW" "Shortcut already exists in $shell_rc_file"
+  else
+    echo "$shortcut_command" >>"$shell_rc_file"
+    print_color "$GREEN" "Shortcut added to $shell_rc_file"
+    print_color "$YELLOW" "Please restart your terminal or run 'source $shell_rc_file' to use the new shortcut."
+  fi
+}
+
 # Main execution
 main() {
   print_color "$YELLOW" "Starting secure boot setup with YubiKey..."
 
   check_requirements
-  # setup_gpg_yubikey
-  # create_boot_signature
-  create_verify_script
-  create_initramfs_hook
-  create_initramfs_install
+  create_directories
+  copy_scripts
   update_mkinitcpio_conf
   regenerate_initramfs
-
+  generate_initial_hashes
   print_color "$GREEN" "Secure boot setup complete!"
-  print_color "$YELLOW" "Please ensure your bootloader is configured to use the new initramfs."
-  print_color "$YELLOW" "Remember to update the boot partition signature after any changes to the boot partition."
+  print_color "$YELLOW" "Ensure your bootloader is configured to use the new initramfs."
+  print_color "$YELLOW" "Remember to update the boot partition signature after any changes to the boot partition \nby running:"
+
+  print_color "$GREEN" "./usr/local/bin/generate_hashes.sh"
+
+  read -p "Would you like to add a 'regenerate_hashes' shortcut to your shell configuration? (y/n) " add_shortcut
+  if [[ $add_shortcut =~ ^[Yy]$ ]]; then
+    add_regenerate_shortcut
+  fi
+
+  print_color "$YELLOW" "Remember to update the boot hashes after any changes to the boot partition."
 }
 
 # Run the main function
