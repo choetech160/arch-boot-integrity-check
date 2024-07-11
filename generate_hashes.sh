@@ -96,6 +96,11 @@ GREEN='\033[38;2;0;255;0m'    # Pure green
 YELLOW='\033[38;2;255;255;0m' # Yellow
 NC='\033[0m'                  # No Color
 
+if [ "$(id -u)" -eq 0 ]; then
+  echo "This script should not be run as root or with sudo. Please run it as a regular user."
+  exit 1
+fi
+
 echo -en "${GREEN}Generating system hashes...   \n"
 INTEGRITY_DIR="/etc/boot_integrity"
 BOOT_DIR="/boot"
