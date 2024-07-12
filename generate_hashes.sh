@@ -100,7 +100,10 @@ if [ "$(id -u)" -eq 0 ]; then
   echo "This script should not be run as root or with sudo. Please run it as a regular user."
   exit 1
 fi
-
+if ! pacman -Qi yubikey-manager &> /dev/null; then
+    echo "yubikey-manager is not installed. Installing now..."
+    sudo pacman -S yubikey-manager
+fi
 echo -en "${GREEN}Generating system hashes...   \n"
 INTEGRITY_DIR="/etc/boot_integrity"
 BOOT_DIR="/boot"
