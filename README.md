@@ -39,12 +39,12 @@ FILES WILL BE MOVED TO APPROPRIATE LOCATIONS
 3. False positives: Legitimate updates to the boot partition will cause the integrity check to fail until the hashes are updated.
 
 4. No encryption: This system verifies integrity but does not provide encryption for the boot partition.
+https://aide.github.io/
+5. Limited scope: The system only verifies the boot partition, not the entire system. [AIDE](https://aide.github.io/) would be better suited for this task.
 
-5. Limited scope: The system only verifies the boot partition, not the entire system.
+## What makes it good
 
-## Good Practices and Thumbs Up in InfoSec
-
-1. Two-factor authentication: Using a YubiKey adds a physical factor to the boot process, enhancing security.
+1. Two-factor authentication: Using a YubiKey adds a physical factor to the boot process.
 
 2. Integrity verification: Checking file hashes helps detect unauthorized modifications to critical system files.
 
@@ -54,7 +54,7 @@ FILES WILL BE MOVED TO APPROPRIATE LOCATIONS
 
 5. Transparency: The system provides clear feedback during the boot process, allowing the user to understand what's happening.
 
-6. Fail-secure: If any part of the verification fails, the boot process is halted, preventing potential compromise. You can always decrypt your drive after and boot normally.
+6. Fail-secure: If any part of the verification fails, the boot process is halted, preventing potential compromise. You can always decrypt your drive after and boot normally, basicall ignore the warning
 
-Remember, while this system adds a layer of security, it should be part of a comprehensive security strategy, including full-disk encryption, regular updates, and good operational security practices.
+Remember, while this system adds a layer of security, it should be part of a comprehensive security strategy, including full-disk encryption, regular updates, and good OPSEC practices.
 
