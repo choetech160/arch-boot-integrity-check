@@ -39,7 +39,7 @@ FILES WILL BE MOVED TO APPROPRIATE LOCATIONS
 3. False positives: Legitimate updates to the boot partition will cause the integrity check to fail until the hashes are updated.
 
 4. No encryption: This system verifies integrity but does not provide encryption for the boot partition.
-https://aide.github.io/
+
 5. Limited scope: The system only verifies the boot partition, not the entire system. [AIDE](https://aide.github.io/) would be better suited for this task.
 
 ## What makes it good
