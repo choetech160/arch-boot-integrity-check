@@ -125,6 +125,7 @@ while IFS= read -r -d "" file; do
 done < <(find "$BOOT_DIR" -type f ! -name "*.img" ! -path "*/efi/*" -print0)
 echo "$(dd if=$BOOT_DIR/initramfs-linux-fallback.img bs=1M count=1 2>/dev/null | sha256sum | cut -d" " -f1)  $BOOT_DIR/initramfs-linux-fallback.img" >> "$HASH_FILE"
 echo "$(dd if=$BOOT_DIR/initramfs-linux.img bs=1M count=1 2>/dev/null | sha256sum | cut -d" " -f1)  $BOOT_DIR/initramfs-linux.img" >> "$HASH_FILE"
+echo "$(dd if=$BOOT_DIR/vmlinuz-linux bs=1M count=1 2>/dev/null | sha256sum | cut -d" " -f1)  $BOOT_DIR/vmlinuz-linux" >> "$HASH_FILE"
 '
 
 boot_token=$(head -c 32 /dev/urandom | base64)      # gen a random boot token

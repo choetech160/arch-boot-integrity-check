@@ -64,6 +64,7 @@ while IFS= read -r -d '' file; do
 done < <(find $MOUNT_POINT -type f ! -name "*.img" ! -path "*/efi/*" -print0)
 echo "$(dd if=$MOUNT_POINT/initramfs-linux-fallback.img bs=1M count=1 2>/dev/null | sha256sum | cut -d' ' -f1)  $MOUNT_POINT/initramfs-linux-fallback.img" >>$TMP_HASH_FILE 2>/dev/null #| tee -a $TMP_HASH_FILE
 echo "$(dd if=$MOUNT_POINT/initramfs-linux.img bs=1M count=1 2>/dev/null | sha256sum | cut -d' ' -f1)  $MOUNT_POINT/initramfs-linux.img" >>$TMP_HASH_FILE 2>/dev/null                   #| tee -a $TMP_HASH_FILE
+echo "$(dd if=$MOUNT_POINT/vmlinuz-linux bs=1M count=1 2>/dev/null | sha256sum | cut -d" " -f1)  $MOUNT_POINT/vmlinuz-linux" >>"$TMP_HASH_FILE" 2>/dev/null
 
 # Compare hashes
 if diff $TMP_HASH_FILE $HASH_FILE >/dev/null; then
